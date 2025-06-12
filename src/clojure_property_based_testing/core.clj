@@ -1,4 +1,4 @@
-(ns clojure-generated-tests.core)
+(ns clojure-property-based-testing.core)
 
 (defn foo
   "I don't do a whole lot."
