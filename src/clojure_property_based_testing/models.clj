@@ -1,6 +1,7 @@
 (ns clojure-property-based-testing.models
   (:require
    [schema.core :as s])
+
   (:import
    [clojure.lang PersistentQueue]))
 
@@ -13,3 +14,4 @@
   {Departments (s/maybe (s/queue s/Str))})
 
 (s/defschema Hospital {(s/required-key :departments) Department})
+

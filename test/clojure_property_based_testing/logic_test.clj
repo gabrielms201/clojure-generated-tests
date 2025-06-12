@@ -3,8 +3,13 @@
    [clojure-property-based-testing.generators.person-generator :as pg]
    [clojure-property-based-testing.logic :refer [arrives-at fits-queue?]]
    [clojure-property-based-testing.models :as m]
+   [clojure.set :as set]
    [clojure.test :refer [are deftest is testing]]
-   [clojure.test.check.generators :as gen]))
+   [clojure.test.check.clojure-test :refer [defspec]]
+   [clojure.test.check.generators :as gen]
+   [clojure.test.check.properties :as properties]
+   [schema-generators.complete :as c]
+   [schema-generators.generators :as g]))
 
 (deftest fits-queue-test
   (testing "It should be able to tell that that an empty queue fits a new person"
@@ -44,15 +49,27 @@
           department :cardiology]
       (is (= false (fits-queue? hospital department))))))
 
-;; (defspec arrives-at-success-test 10
-;;   (prop/for-all
-;;    [queue-as-vector (gen/vector pg/pname 0 4)
-;;     person-to-arrive pg/pname]
-;;    (let [queue (into m/Empty-Queue queue-as-vector)
-;;          hospital {:departments {:cardiology queue}}
-;;          expected-output {:departments {:cardiology (conj queue person-to-arrive)}}]
-;;      (is (= expected-output
-;;             (arrives-at hospital :cardiology person-to-arrive))))))
+(defspec arrives-at-success-test 10
+  (properties/for-all
+   [queue-as-vector (gen/vector pg/pname 0 4)
+    person-to-arrive pg/pname]
+   (let [queue (into m/Empty-Queue queue-as-vector)
+         hospital {:departments {:cardiology queue}}
+         expected-output {:departments {:cardiology (conj queue person-to-arrive)}}]
+     (is (= expected-output
+            (arrives-at hospital :cardiology person-to-arrive))))))
+
+(defspec arrives-at-generated-schema-success-test 30
+  (properties/for-all
+   [queue (gen/fmap (partial into m/Empty-Queue) (gen/vector pg/pname 0 4))
+    department (g/generator m/Departments)
+    person-to-arrive pg/pname]
+   (let [hospital (c/complete {:departments {department queue}} m/Hospital)
+         output (arrives-at hospital department person-to-arrive)
+         output-queue (department (:departments output))]
+     (is (= person-to-arrive (last output-queue)))
+     (is (= (inc (count queue)) (count output-queue)))
+     (is (= (->  queue vec seq) (-> output-queue vec butlast))))))
 
 (deftest arrives-at-test
   (testing "It should be able to insert a new person in the queue if is not empty"
