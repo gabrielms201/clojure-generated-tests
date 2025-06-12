@@ -3,7 +3,6 @@
    [clojure-property-based-testing.generators.person-generator :as pg]
    [clojure-property-based-testing.logic :refer [arrives-at fits-queue?]]
    [clojure-property-based-testing.models :as m]
-   [clojure.set :as set]
    [clojure.test :refer [are deftest is testing]]
    [clojure.test.check.clojure-test :refer [defspec]]
    [clojure.test.check.generators :as gen]
